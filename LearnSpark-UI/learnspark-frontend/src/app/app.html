@@ -1,34 +1,101 @@
-<div class="container">
-  <h1>🚀 LearnSpark</h1>
-  <p>Dein KI-Lernpfad Generator</p>
-
-  <div class="input-area">
-    <input type="text" [(ngModel)]="topic" placeholder="Was möchtest du lernen? (z.B. Docker)" [disabled]="isLoading">
-    <button (click)="generatePath()" [disabled]="isLoading || !topic">
-      {{ isLoading ? 'KI denkt nach...' : 'Lernpfad generieren' }}
-    </button>
-  </div>
-
-  <div *ngIf="errorMessage" class="error">
-    {{ errorMessage }}
-  </div>
-
-  <div *ngIf="learningPath" class="result-area">
-    <h2>Lernpfad: {{ learningPath.topic }}</h2>
-
-    <div *ngFor="let module of learningPath.modules" class="module-card">
-      <h3>{{ module.title }}</h3>
-      <p><i>{{ module.description }}</i></p>
-
-      <ul class="subtopic-list">
-        <li *ngFor="let sub of module.subTopics">
-          <strong>{{ sub.title }}</strong>
-          <br>
-          <span class="concept-tag" *ngFor="let concept of sub.keyConcepts">
-            {{ concept }}
-          </span>
-        </li>
-      </ul>
+<div class="main-layout">
+  
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>📚 Meine Pfade</h2>
     </div>
-  </div>
+    
+    <div class="path-list">
+      <div 
+        *ngFor="let path of savedPaths" 
+        class="path-item" 
+        [class.active]="learningPath && learningPath.id === path.id"
+        (click)="selectPath(path)"
+      >
+        <div class="path-info">
+          <span class="path-title">{{ path.topic }}</span>
+          <span class="path-percent">{{ path.progress }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="path.progress"></div>
+        </div>
+      </div>
+
+      <div *ngIf="savedPaths.length === 0" class="empty-state">
+        <p>Noch keine Pfade.</p>
+        <small>Starte rechts dein erstes Abenteuer!</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    
+    <header>
+      <div class="brand">
+        <h1>🚀 LearnSpark</h1>
+        <p>Dein persönlicher KI-Tutor</p>
+      </div>
+      
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          [(ngModel)]="topic" 
+          placeholder="Thema eingeben (z.B. Japanische Geschichte)..." 
+          [disabled]="isLoading"
+          (keyup.enter)="generatePath()"
+        >
+        <button (click)="generatePath()" [disabled]="isLoading || !topic">
+          {{ isLoading ? '...' : 'Generieren' }}
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="errorMessage" class="alert error">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <h3>Die KI baut deinen Lernplan...</h3>
+      <p>Das kann je nach Rechenpower kurz dauern.</p>
+    </div>
+
+    <div *ngIf="learningPath && !isLoading" class="result-container">
+      
+      <div class="path-headline">
+        <h2>{{ learningPath.topic }}</h2>
+        <div class="total-progress">
+          Gesamtfortschritt: <strong>{{ learningPath.progress }}%</strong>
+        </div>
+      </div>
+      
+      <div *ngFor="let module of learningPath.modules; let mIndex = index" class="module-card">
+        <div class="module-header">
+          <h3><span class="module-number">Modul {{ mIndex + 1 }}</span> {{ module.title }}</h3>
+          <p>{{ module.description }}</p>
+        </div>
+
+        <div class="subtopic-list">
+          <div 
+            *ngFor="let sub of module.subTopics; let sIndex = index" 
+            class="subtopic-item"
+            [class.completed]="sub.isCompleted"
+            (click)="toggleSubTopic(mIndex, sIndex)"
+          >
+            <div class="checkbox">
+              <span *ngIf="sub.isCompleted">✔</span>
+            </div>
+            
+            <div class="subtopic-content">
+              <h4>{{ sub.title }}</h4>
+              <div class="tags">
+                <span class="tag" *ngFor="let concept of sub.keyConcepts">{{ concept }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
 </div>
